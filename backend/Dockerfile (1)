@@ -11,8 +11,14 @@ RUN pip install --prefix=/install -r requirements.txt
 # nosemgrep: dockerfile-source-not-pinned -- tag oficial; o build usa --pull e o Trivy escaneia a imagem final a cada commit (Dependabot atualiza)
 FROM python:3.13-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+# aplica as correções de segurança do Debian que ainda não entraram na imagem base (apontadas pelo Trivy),
 # remove o pip da imagem final (menos superfície de ataque e menos CVEs) e cria usuário sem privilégios
-RUN python -m pip uninstall -y pip \
+# nosemgrep: avoid-apt-get-upgrade
+RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m pip uninstall -y pip \
     && groupadd --system --gid 10001 app \
     && useradd --system --uid 10001 --gid app --no-create-home --shell /usr/sbin/nologin app
 COPY --from=builder /install /usr/local
