@@ -23,9 +23,9 @@ variable "rm" {
 }
 
 variable "vm_size" {
-  description = "Tamanho da VM. Standard_B2ls_v2 (2 vCPU, 4 GB) aguenta API + YOLO ONNX + Next + PostGIS."
+  description = "Tamanho da VM. Standard_B2s (2 vCPU, 4 GB) aguenta API + YOLO ONNX + Next + PostGIS."
   type        = string
-  default     = "Standard_B2ls_v2"
+  default     = "Standard_B2s"
 }
 
 variable "disco_gb" {
@@ -36,6 +36,12 @@ variable "disco_gb" {
 
 variable "github_repo" {
   description = "Repositório no formato dono/repo. Se preenchido, cria a identidade OIDC do GitHub Actions (sem senha guardada no GitHub)."
+  type        = string
+  default     = ""
+}
+
+variable "github_oidc_prefixo" {
+  description = "Prefixo do subject OIDC como o GitHub envia (ex.: repo:dono@123/repo@456). Vazio = repo:<github_repo>."
   type        = string
   default     = ""
 }

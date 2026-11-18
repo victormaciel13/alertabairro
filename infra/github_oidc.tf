@@ -2,9 +2,12 @@
 # Só a branch main e o ambiente "producao" deste repositório conseguem usar a identidade.
 locals {
   usar_oidc = var.github_repo != ""
+  # O GitHub pode mandar o "subject" no formato novo, com IDs (repo:dono@123/repo@456:...).
+  # Copie o prefixo exato do log do azure/login ("subject claim") para var.github_oidc_prefixo.
+  prefixo_oidc = coalesce(var.github_oidc_prefixo, "repo:${var.github_repo}")
   assuntos_oidc = {
-    main     = "repo:${var.github_repo}:ref:refs/heads/main"
-    producao = "repo:${var.github_repo}:environment:producao"
+    main     = "${local.prefixo_oidc}:ref:refs/heads/main"
+    producao = "${local.prefixo_oidc}:environment:producao"
   }
 }
 
