@@ -1,0 +1,9 @@
+# Copie para terraform.tfvars (que NÃO vai para o Git) e ajuste.
+subscription_id = "d2755232-6cd9-4f48-8b3e-69aca6a0329a" # az account show --query id -o tsv
+localizacao     = "eastus"                               # uma das regiões liberadas na sua assinatura
+rm              = "98384"
+github_repo     = "victormaciel13/alertabairro"
+
+# vm_size         = "Standard_B2ls_v2"
+# habilitar_https = false   # se o certificado falhar, volte para só HTTP
+# chaos_enabled   = true    # só durante a demonstração do alerta

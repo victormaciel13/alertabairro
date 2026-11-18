@@ -1,0 +1,20 @@
+# segredos e estado (NUNCA vão para o Git)
+.env
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl.bak
+crash.log
+
+# dependências e builds
+node_modules/
+.next/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# pesos do PyTorch (a API usa o .onnx)
+*.pt

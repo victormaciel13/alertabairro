@@ -1,0 +1,37 @@
+groups:
+  - name: alertabairro
+    rules:
+      - alert: TaxaDeErroAlta
+        # % de respostas 5xx no último minuto
+        expr: |
+          sum(rate(http_requests_total{job="alertabairro-api", status="5xx"}[1m]))
+            /
+          sum(rate(http_requests_total{job="alertabairro-api"}[1m]))
+            > 0.05
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Mais de 5% das requisições da API estão falhando"
+          description: "Taxa de erro 5xx em {{ $value | humanizePercentage }} há mais de 1 minuto."
+
+      - alert: LatenciaAlta
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(http_request_duration_highr_seconds_bucket{job="alertabairro-api"}[2m]))
+          ) > 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p95 da latência acima de 1 s"
+          description: "95% das requisições levam até {{ $value | humanizeDuration }}."
+
+      - alert: ApiForaDoAr
+        expr: up{job="alertabairro-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus não consegue coletar métricas da API"
+          description: "A URL pública não respondeu ao /api/metrics por mais de 1 minuto."

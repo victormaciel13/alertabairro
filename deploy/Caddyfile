@@ -1,0 +1,38 @@
+# Proxy reverso na frente da aplicação.
+# SITE_ADDRESS = ":80" (só HTTP) ou um domínio, ex.: "3-91-10-20.sslip.io".
+# Com domínio, o Caddy emite o certificado HTTPS (Let's Encrypt) sozinho e redireciona 80 -> 443.
+{
+	admin off
+}
+
+{$SITE_ADDRESS::80} {
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(self), camera=(), microphone=()"
+		-Server
+	}
+
+	# limite de upload (a API também valida 5 MB)
+	request_body /api/relatos/foto {
+		max_size 6MB
+	}
+
+	# /api/* vai para a FastAPI sem o prefixo (/api/health -> /health)
+	handle_path /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

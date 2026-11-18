@@ -1,0 +1,82 @@
+# Produção (VM na Azure). Este arquivo e o Caddyfile são enviados pelo pipeline para /opt/alertabairro.
+# As variáveis vêm do .env que o deploy.sh gera a partir do Azure Key Vault.
+name: alertabairro
+
+x-seguranca: &seguranca
+  restart: unless-stopped
+  security_opt: ["no-new-privileges:true"]
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  db:
+    <<: *seguranca
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_USER: alertabairro
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD}
+      POSTGRES_DB: alertabairro
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alertabairro -d alertabairro"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [backend]
+    mem_limit: 512m
+
+  api:
+    <<: *seguranca
+    image: ${REGISTRY:?}/alertabairro-api:${IMAGE_TAG:?}
+    environment:
+      DATABASE_URL: postgresql://alertabairro:${DB_PASSWORD}@db:5432/alertabairro
+      METRICS_TOKEN: ${METRICS_TOKEN:?defina METRICS_TOKEN}
+      ROOT_PATH: /api
+      CHAOS_ENABLED: ${CHAOS_ENABLED:-false}
+    depends_on:
+      db: { condition: service_healthy }
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    networks: [backend, frontend]
+    mem_limit: 768m
+
+  web:
+    <<: *seguranca
+    image: ${REGISTRY}/alertabairro-web:${IMAGE_TAG}
+    depends_on:
+      api: { condition: service_healthy }
+    cap_drop: [ALL]
+    networks: [frontend]
+    mem_limit: 384m
+
+  proxy:
+    <<: *seguranca
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web: { condition: service_healthy }
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    networks: [frontend]
+    mem_limit: 128m
+
+networks:
+  frontend: {}
+  backend:
+    internal: true # o banco não tem saída para a internet nem porta exposta
+
+volumes:
+  pgdata: {}
+  caddy_data: {}
+  caddy_config: {}

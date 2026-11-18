@@ -1,0 +1,45 @@
+# Ambiente LOCAL: docker compose up --build  ->  http://localhost:8080
+# Copie .env.example para .env antes.
+name: alertabairro-local
+
+services:
+  db:
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_USER: alertabairro
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?copie .env.example para .env}
+      POSTGRES_DB: alertabairro
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U alertabairro -d alertabairro"]
+      interval: 5s
+      retries: 20
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://alertabairro:${DB_PASSWORD}@db:5432/alertabairro
+      METRICS_TOKEN: ${METRICS_TOKEN}
+      ROOT_PATH: /api
+      CHAOS_ENABLED: ${CHAOS_ENABLED:-true}
+    depends_on:
+      db: { condition: service_healthy }
+    read_only: true
+    tmpfs: [/tmp]
+
+  web:
+    build: ./frontend
+    depends_on: [api]
+
+  proxy:
+    image: caddy:2-alpine
+    ports: ["8080:80"]
+    environment:
+      SITE_ADDRESS: ":80"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on: [web]
+
+volumes:
+  pgdata: {}
