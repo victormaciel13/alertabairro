@@ -25,14 +25,15 @@ resource "azurerm_network_security_group" "app" {
   tags                = local.tags
 
   security_rule {
-    name                       = "permitir-http-https"
-    description                = "Site publico do AlertaBairro"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_ranges    = ["80", "443"]
+    name                    = "permitir-http-https"
+    description             = "Site publico do AlertaBairro"
+    priority                = 100
+    direction               = "Inbound"
+    access                  = "Allow"
+    protocol                = "Tcp"
+    source_port_range       = "*"
+    destination_port_ranges = ["80", "443"]
+    # trivy:ignore:AVD-AZU-0047 site público: 80/443 precisam aceitar qualquer IP (a porta 22 continua fechada)
     source_address_prefix      = "Internet"
     destination_address_prefix = "*"
   }

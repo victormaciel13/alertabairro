@@ -9,7 +9,7 @@ flowchart LR
     subgraph AZ["Azure · Resource Group rg-alertabairro"]
       subgraph VNET["VNet 10.20.0.0/16 · snet-app"]
         NSG{{NSG<br/>entrada: só 80 e 443<br/>sem SSH}}
-        subgraph VM["VM Standard_B2ls_v2 · Ubuntu 24.04 · Trusted Launch · disco criptografado"]
+        subgraph VM["VM Standard_B2s · Ubuntu 24.04 · Trusted Launch · disco criptografado"]
           C[Caddy<br/>TLS + cabeçalhos de segurança]
           W[Next.js<br/>front-end]
           A[FastAPI<br/>+ YOLO11 ONNX]
@@ -69,6 +69,7 @@ flowchart LR
 | Métricas expostas | `/metrics` exige token Bearer | `backend/app/main.py` |
 
 **Riscos aceitos** (aparecem no Trivy como LOW/MEDIUM e não barram o pipeline):
+- *Entrada liberada para a internet* (AZU-0047, ignorado com justificativa no código): vale só para 80 e 443, que o site precisa; todo o resto, inclusive a porta 22, é negado.
 - *Placa de rede com IP público* (AZU-0076): necessário para o site; um Load Balancer/Application Gateway na frente custaria mais que a VM.
 - *NIC sem NSG* (AZU-0068): falso positivo; o NSG está associado à subnet **e** à placa de rede.
 
@@ -106,7 +107,7 @@ Não há cadastro de usuário, nome, e-mail ou CPF. Evolução prevista: borrar 
 
 | Item | Cálculo | US$/mês |
 |---|---|---:|
-| VM Standard_B2ls_v2 (2 vCPU, 4 GB) | 730 h × US$ 0,0416 | 30,37 |
+| VM Standard_B2s (2 vCPU, 4 GB) | 730 h × US$ 0,0416 | 30,37 |
 | Disco Standard SSD 32 GB (E4) | preço fixo | 2,40 |
 | IP público Standard estático | 730 h × US$ 0,005 | 3,65 |
 | Azure Container Registry Basic | 30 dias × US$ 0,167 | 5,00 |

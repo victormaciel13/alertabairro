@@ -1,18 +1,34 @@
-# Mantém imagens base, actions e bibliotecas atualizadas com PRs automáticos (que passam pelo pipeline)
+# Mantém imagens base, actions e bibliotecas atualizadas com PRs automáticos (que passam pelo pipeline).
+# cooldown: só propõe versões publicadas há pelo menos 7 dias (evita pegar um pacote recém-comprometido).
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
   - package-ecosystem: docker
     directories: [/backend, /frontend]
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
   - package-ecosystem: pip
     directory: /backend
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
   - package-ecosystem: npm
     directory: /frontend
-    schedule: { interval: weekly }
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
   - package-ecosystem: terraform
     directory: /infra
-    schedule: { interval: monthly }
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
