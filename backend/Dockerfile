@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # ---------- estágio 1: instala dependências ----------
 # nosemgrep: dockerfile-source-not-pinned -- tag oficial; o build usa --pull e o Trivy escaneia a imagem final a cada commit (Dependabot atualiza)
-FROM python:3.13-slim AS builder
+FROM python:3.15-slim AS builder
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 WORKDIR /build
 COPY requirements.txt .
@@ -9,7 +9,7 @@ RUN pip install --prefix=/install -r requirements.txt
 
 # ---------- estágio 2: imagem final, sem ferramentas de build ----------
 # nosemgrep: dockerfile-source-not-pinned -- tag oficial; o build usa --pull e o Trivy escaneia a imagem final a cada commit (Dependabot atualiza)
-FROM python:3.13-slim
+FROM python:3.15-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 # aplica as correções de segurança do Debian que ainda não entraram na imagem base (apontadas pelo Trivy),
 # remove o pip da imagem final (menos superfície de ataque e menos CVEs) e cria usuário sem privilégios
