@@ -1,14 +1,14 @@
 # syntax=docker/dockerfile:1
 # ---------- estágio 1: dependências ----------
 # nosemgrep: dockerfile-source-not-pinned -- tag oficial; o build usa --pull e o Trivy escaneia a imagem final a cada commit (Dependabot atualiza)
-FROM node:24-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
 # ---------- estágio 2: build ----------
 # nosemgrep: dockerfile-source-not-pinned -- tag oficial; o build usa --pull e o Trivy escaneia a imagem final a cada commit (Dependabot atualiza)
-FROM node:24-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
@@ -17,7 +17,7 @@ RUN npm run build
 
 # ---------- estágio 3: imagem final (só o servidor standalone) ----------
 # nosemgrep: dockerfile-source-not-pinned -- tag oficial; o build usa --pull e o Trivy escaneia a imagem final a cada commit (Dependabot atualiza)
-FROM node:24-alpine
+FROM node:25-alpine
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 # npm, npx, corepack e yarn não são usados em produção: removidos (menos CVEs no Trivy)
